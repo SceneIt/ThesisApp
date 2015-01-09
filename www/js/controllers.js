@@ -1,4 +1,4 @@
-angular.module('sceneIt.controllers', [])
+angular.module('sceneIt.controllers', ['ionic.contrib.frostedGlass', 'sceneIt.filters'])
 
 .controller('AppCtrl', function($scope, $ionicModal, $timeout) {
   // Form data for the login modal
@@ -33,7 +33,7 @@ angular.module('sceneIt.controllers', [])
   };
 })
 
-.controller('GeoLocCtrl', function($scope, $interval,$ionicModal, $compile, $http, MapFactory) {
+.controller('GeoLocCtrl', function($scope, $interval,$ionicModal, $compile, $ionicLoading, $ionicPopup, $ionicScrollDelegate, $http, MapFactory) {
 
   $ionicModal.fromTemplateUrl('templates/comments.html', {
     scope: $scope
@@ -49,7 +49,7 @@ angular.module('sceneIt.controllers', [])
       }
     });
     for(var i = 0; i < points.length; i ++){
-      var html = '<div ng-click="comments('+points[i].id+')"><h6>'+points[i].description+'</h6><p>Click for details</p>' +
+      var html = '<div ng-click="showComments('+points[i].id+')"><h6>'+points[i].description+'</h6><p>Click for details</p>' +
           '<img src = '+points[i].photoUrl+' height = "150", width = "150"></div>';
       var linkFunction = $compile(angular.element(html)),
           newScope = $scope.$new();
@@ -65,16 +65,59 @@ angular.module('sceneIt.controllers', [])
     console.log();    
     return markers;
   };
-
-  var server = encodeURI('http://162.246.58.173:8000/api/photo/data/getPhotoData');
-  $scope.pointComment;
-  $scope.comments = function(id) {
-    $http.post(server, {id:id}).success(function(data){
-      $scope.pointComment = data;
+  $scope.postComment = function(photoData){
+    $scope.commentData = {};
+    var commentPostPopup = $ionicPopup.show({
+      template: '<textarea rows=2 type="text" ng-model="commentData.comment">',
+      title: 'Enter your comments',
+      scope: $scope,
+      buttons: [
+        { text: 'Cancel' },
+        {
+          text: '<b>Save</b>',
+          type: 'button-positive',
+          onTap: function(e) {
+            if (!$scope.commentData.comment) {
+              //don't allow the user to close unless he enters wifi password
+              e.preventDefault();
+            } else {
+              MapFactory.postComment(photoData.id, photoData.userID, $scope.commentData.comment);
+              $scope.showComments(photoData.id);
+            }
+          }
+        }
+      ]
+    });
+    commentPostPopup.then(function(res) {
+      console.log('Tapped!', res);
     });
 
-    console.log('click click', $scope.pointComment);
-    $scope.commentModal.show();
+
+  };
+  $scope.doRefresh = function(id){
+    $scope.showComments(id)
+    .finally(function() {
+           // Stop the ion-refresher from spinning
+           $scope.$broadcast('scroll.refreshComplete');
+         });
+  };
+  $scope.showComments = function(id) {
+    $scope.pointComment = {};
+    $ionicLoading.show({
+      template: 'Loading...'
+    });
+    MapFactory.getPhotoData(id)
+      .then(function(data){
+        console.log('returned data', data);
+        $scope.pointComment.data = data.data;
+        MapFactory.getCommentsForPhoto(id)
+          .then(function(comments){
+            $scope.pointComment.comments = comments;
+            $ionicLoading.hide();
+            $scope.commentModal.show();
+          });
+      });
+
   };
   $scope.closeComments = function() {
     $scope.commentModal.hide();
@@ -162,11 +205,11 @@ angular.module('sceneIt.controllers', [])
   $scope.uploadPicture = function(){
     // var server = encodeURI('http://10.6.32.229:8000/photo/take');     //HackReactor test
     // var server = encodeURI('http://192.168.1.109:8000/photo/take'); //home test
-    var server = encodeURI('http://162.246.58.173:8000/photo/take'); // vps test
+    var picserver = encodeURI('http://162.246.58.173:8000/photo/take'); // vps test
     // var server = encodeURI('corruptflamingo-staging.azurewebsites.net/photo/take'); //azure staging test
     var req = {
      method: 'POST',
-     url: server,
+     url: picserver,
      headers: {
        'Content-Type': 'application/json'
      },
@@ -189,14 +232,40 @@ angular.module('sceneIt.controllers', [])
         options.mimeType = "image/JPEG";
 
         var ft = new FileTransfer();
-        ft.upload($scope.imageData, server, win, fail, options);
+        ft.upload($scope.imageData, picserver, win, fail, options);
       });
     }
   };
 })
 .factory('MapFactory', function($http){
   //getPoints function will return an array of objects
-  var server = encodeURI('http://162.246.58.173:8000');
+  var picserver = encodeURI('http://162.246.58.173:8000');
+  var server = encodeURI('http://sceneit.azurewebsites.net/');
+  var getPhotoData = function(id){
+    console.log('gettin photo data with id', id);
+    return $http.post(picserver+'/api/photo/data/getPhotoData', {id:id})
+      .success(function(data){
+      return data;
+    }).error(function(){
+      console.log('probably getting Photo Data with id',id);
+    });
+  };
+  var getCommentsForPhoto = function(id){
+    return $http.get(server+'/api/comments/', {params: {id: id}})
+    .success(function(data){
+      return data;
+    });
+  };
+  var postComment = function(id, user, comment){
+    console.log(id, user, comment);
+    return $http({
+      method: 'POST',
+      url: server+'/api/comments/',
+      data: {photoid: id, userid: user, comment: comment}
+    }).then(function(res){
+        return res.data;
+    });
+  };
   var getPoints = function(){
     return $http({
       method: 'GET',
@@ -209,7 +278,7 @@ angular.module('sceneIt.controllers', [])
   var postPhotos = function(photoData){
     return $http({
       method: 'POST',
-      url: server + 'api/photo/data',
+      url: picserver + 'api/photo/data',
       data: photoData
     }).then(function(res){
         console.log('uplodaded',res.data);
@@ -237,8 +306,11 @@ angular.module('sceneIt.controllers', [])
     return markers;
   };
   return {
+    getPhotoData: getPhotoData,
+    getCommentsForPhoto: getCommentsForPhoto,
+    postComment: postComment,
     getPoints : getPoints,
     postPhotos : postPhotos,
     plotPoints : plotPoints
   };
-});;
+});

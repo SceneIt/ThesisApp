@@ -1,16 +1,41 @@
 <ion-modal-view>
-  <ion-header-bar title="comments" type="bar-frosted" frosted-bar>
+<ion-header-bar>
+  <header-bar frosted-bar class="frosted-bar">
+  <div class="bar bar-header">
+    <button class="button" ng-click="postComment(pointComment.data)">Post</button>
+    <h1 class="title">Comments</h1>
+    <button class="button" ng-click="closeComments()">Close</button>
+  </div>
+   <!--  <button class="button button-clear" ng-click="closeComments()">Post</button>
     <h1 class="title">Comments</h1>
     <div class="buttons">
-      <button class="button button-clear" ng-click="closeComments()">Close</button>
+      <button class="button button-clear" ng-click="closeComments()">Close</button> -->
+    <!-- </div> -->
+  </header-bar>
+</ion-header-bar>
+  <ion-content has-header="true">
+  <ion-refresher
+    pulling-text="Pull to refresh..."
+    on-refresh="doRefresh(pointComment.data.id)">
+  </ion-refresher>
+  <div class="card">
+    <div class="item item-avatar"  data-ng-if="pointComment.data.timeStamp">
+       <!-- <img src="mcfly.jpg"> -->
+       <h2>{{ pointComment.data.description }}</h2>
+       <p>{{ pointComment.data.timeStamp | fromNow}}</p>
+     </div>
+    <div class="item item-divider">
+      <img src="{{pointComment.data.photoUrl}}" width="100%">
     </div>
-  </ion-header-bar>
-  <ion-content>
-   <p>{{ pointComment.description }} - {{ pointComment.timeStamp}}</p>
-  <p>score: {{pointComment.score}}</p>
-   <hr>
-   <img src="{{pointComment.photoUrl}}" width="100%">
+  </div>
+  <div class="card">
+    <div class="item item-text-wrap" ng-repeat="comments in pointComment.comments.data" >
+       <div><strong>Username: </strong>{{comments.comment}}</div>
+    </div>
+  </div>
 
-   {{ pointComment }}
+<!--  <div class="container">
+
+ </div> -->
   </ion-content>
 </ion-modal-view>
