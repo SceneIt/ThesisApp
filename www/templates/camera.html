@@ -1,15 +1,17 @@
 <ion-view view-title="Camera">
   <ion-content>
-    <ion-list>
+    <ion-list>  
+    <br><br><br>
 
-    <button ng-click="takePicture()"  class="button button-block button-primary">Take pic</button>
-    <button ng-click="selectPicture()"  class="button button-block button-primary">Select pic from album</button>
+    <button ng-click="showCameraSelect()"  class="button button-block button-primary">Take a picture</button>
+    <!-- <button ng-click="selectPicture()"  class="button button-block button-primary">Select pic from album</button> -->
     <div class='picPreviewAndText'>
       <img id="preview" width="200" height="200"></img>
-      <textarea id='desc' placeholder='Enter a description' type='text' rows='2' width="200" ng-model="description.comment" required></textarea>
-      {{ description }}
+      <ng-form name="descriptionBox">
+        <textarea id='desc' placeholder='Please enter a description [required]' type='text' rows='2' width="200" ng-model="description.comment"  ng-required="true"></textarea>
+       <button type="submit" ng-disabled="descriptionBox.$invalid"ng-click="uploadPicture()"  class="button button-block button-primary">upload pic</button>
+    </ng-form>
     </div>
-    <button ng-click="uploadPicture()"  class="button button-block button-primary">upload pic</button>
 
     </ion-list>
   </ion-content>

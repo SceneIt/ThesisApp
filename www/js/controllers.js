@@ -139,7 +139,34 @@ angular.module('sceneIt.controllers', ['ionic.contrib.frostedGlass', 'sceneIt.fi
 
 })
 
-.controller('cameraCtrl', function($http, $scope, $cordovaProgress, $timeout, $cordovaFile) {
+.controller('cameraCtrl', function($http, $scope, $cordovaProgress, $ionicActionSheet, $timeout, $cordovaFile, $ionicLoading) {
+  
+  $scope.showCameraSelect = function() {
+    console.log('clicky showcamera select');
+    $ionicActionSheet.show({
+     buttons: [
+       { text: 'Take a picture' },
+       { text: 'Select from album' }
+     ],
+     titleText: 'Select your source',
+     cancelText: 'Cancel',
+     cancel: function() {
+        return true;
+      },
+     buttonClicked: function(index) {
+      if(index == 0){
+        $scope.takePicture();
+        return true;
+      }
+      if(index == 1){
+        $scope.selectPicture();
+        return true;
+      }
+     }
+   });
+  };
+
+
   $scope.data = '_';
   var cameraOptions = {
     quality: 80,
@@ -179,6 +206,9 @@ angular.module('sceneIt.controllers', ['ionic.contrib.frostedGlass', 'sceneIt.fi
   $scope.description.comment = '';
 
   $scope.uploadPicture = function(){
+    $ionicLoading.show({
+      template: 'Uploading...'
+    });
     // var server = encodeURI('http://10.6.32.229:8000/photo/take');     //HackReactor test
     // var server = encodeURI('http://192.168.1.109:8000/photo/take'); //home test
     var picserver = encodeURI('http://162.246.58.173:8000/photo/take'); // vps test
@@ -196,12 +226,14 @@ angular.module('sceneIt.controllers', ['ionic.contrib.frostedGlass', 'sceneIt.fi
       //  alert('sending image');
       
         var win = function (r) {
+          $ionicLoading.hide();
           $cordovaProgress.showSuccess(true, "Success!");
           $timeout($cordovaProgress.hide, 2000);
         }
 
         var fail = function (error) {
-            alert('upload Fail');
+          $ionicLoading.hide();
+          alert('upload Fail, please try again');
         }
 
         var options = new FileUploadOptions();
@@ -289,19 +321,19 @@ angular.module('sceneIt.controllers', ['ionic.contrib.frostedGlass', 'sceneIt.fi
       }
     });
     for(var i = 0; i < points.length; i ++){
-      var html = '<div ng-click="showComments('+points[i].id+')"><h6>'+points[i].description+'</h6><p>Click for details</p>' +
-          '<img src = '+points[i].photoUrl+' height = "150", width = "150"></div>';
-      var linkFunction = $compile(angular.element(html)),
-          newScope = $scope.$new();
-      var picMarker = new L.marker([points[i].latitude, points[i].longitude], {
-        icon: new picIcon({
-          iconUrl: points[i].photoUrl
-        })
+      var html = '<div ng-click="showComments('+points[i].id+')"><h6>'+points[i].description+'</h6>' +
+          '<img src = '+points[i].photoUrl+' height = "150", width = "150"></div>',
+          linkFunction = $compile(angular.element(html)),
+          newScope = $scope.$new(),
+          picMarker = new L.marker([points[i].latitude, points[i].longitude], {
+            icon: new picIcon({
+              iconUrl: points[i].photoUrl
+            })
       });
       picMarker.bindPopup(linkFunction(newScope)[0]);
       // picMarker.click(console.log("test"+points[i].description+'photoURL'+points[i].photoUrl));
       markers.addLayer(picMarker);
-    };
+    }
     return markers;
   };
   return {
