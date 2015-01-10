@@ -33,7 +33,7 @@ angular.module('sceneIt.controllers', ['ionic.contrib.frostedGlass', 'sceneIt.fi
   };
 })
 
-.controller('GeoLocCtrl', function($scope, $interval,$ionicModal, $compile, $ionicLoading, $ionicPopup, $ionicScrollDelegate, $http, MapFactory) {
+.controller('GeoLocCtrl', function($scope, $interval,$ionicModal, $ionicLoading, $ionicPopup, $ionicScrollDelegate, $http, MapFactory) {
 
   $ionicModal.fromTemplateUrl('templates/comments.html', {
     scope: $scope
@@ -41,30 +41,7 @@ angular.module('sceneIt.controllers', ['ionic.contrib.frostedGlass', 'sceneIt.fi
     $scope.commentModal = comments;
   });
 
-  $scope.plotPoints = function(points){
-    var markers = L.markerClusterGroup();
-    var picIcon = L.Icon.extend({
-      options: {
-        iconSize: [40, 40]
-      }
-    });
-    for(var i = 0; i < points.length; i ++){
-      var html = '<div ng-click="showComments('+points[i].id+')"><h6>'+points[i].description+'</h6><p>Click for details</p>' +
-          '<img src = '+points[i].photoUrl+' height = "150", width = "150"></div>';
-      var linkFunction = $compile(angular.element(html)),
-          newScope = $scope.$new();
-      var picMarker = new L.marker([points[i].latitude, points[i].longitude], {
-        icon: new picIcon({
-          iconUrl: points[i].photoUrl
-        })
-      });
-      picMarker.bindPopup(linkFunction(newScope)[0]);
-      // picMarker.click(console.log("test"+points[i].description+'photoURL'+points[i].photoUrl));
-      markers.addLayer(picMarker);
-    };
-    console.log();    
-    return markers;
-  };
+
   $scope.postComment = function(photoData){
     $scope.commentData = {};
     var commentPostPopup = $ionicPopup.show({
@@ -108,7 +85,6 @@ angular.module('sceneIt.controllers', ['ionic.contrib.frostedGlass', 'sceneIt.fi
     });
     MapFactory.getPhotoData(id)
       .then(function(data){
-        console.log('returned data', data);
         $scope.pointComment.data = data.data;
         MapFactory.getCommentsForPhoto(id)
           .then(function(comments){
@@ -135,7 +111,7 @@ angular.module('sceneIt.controllers', ['ionic.contrib.frostedGlass', 'sceneIt.fi
   $scope.initPoints = function(){
     MapFactory.getPoints().then(function(data){
 
-      map.addLayer($scope.plotPoints(data));
+      map.addLayer(MapFactory.plotPoints(data, $scope));
     });
   };
 
@@ -237,7 +213,7 @@ angular.module('sceneIt.controllers', ['ionic.contrib.frostedGlass', 'sceneIt.fi
     }
   };
 })
-.factory('MapFactory', function($http){
+.factory('MapFactory', function($http, $compile){
   //getPoints function will return an array of objects
   var picserver = encodeURI('http://162.246.58.173:8000');
   var server = encodeURI('http://sceneit.azurewebsites.net/');
@@ -285,7 +261,27 @@ angular.module('sceneIt.controllers', ['ionic.contrib.frostedGlass', 'sceneIt.fi
         return res.data;
     })
   };
-  var plotPoints = function(points){
+  // var plotPoints = function(points){
+  //   var markers = L.markerClusterGroup();
+  //   var picIcon = L.Icon.extend({
+  //     options: {
+  //       iconSize: [40, 40]
+  //     }
+  //   });
+  //   for(var i = 0; i < points.length; i ++){
+  //     var picMarker = new L.marker([points[i].latitude, points[i].longitude], {
+  //       icon: new picIcon({
+  //         iconUrl: points[i].photoUrl
+  //       })
+  //     });
+  //     picMarker.bindPopup('<h6>'+points[i].description+'</h6><p>Click for details</p><img src = '+points[i].photoUrl+' height = "150", width = "150" ng-click="comments()">')
+  //     // picMarker.click(console.log("test"+points[i].description+'photoURL'+points[i].photoUrl));
+  //     markers.addLayer(picMarker);
+  //   };
+  //   console.log();    
+  //   return markers;
+  // };
+  var plotPoints = function(points, $scope){
     var markers = L.markerClusterGroup();
     var picIcon = L.Icon.extend({
       options: {
@@ -293,16 +289,19 @@ angular.module('sceneIt.controllers', ['ionic.contrib.frostedGlass', 'sceneIt.fi
       }
     });
     for(var i = 0; i < points.length; i ++){
+      var html = '<div ng-click="showComments('+points[i].id+')"><h6>'+points[i].description+'</h6><p>Click for details</p>' +
+          '<img src = '+points[i].photoUrl+' height = "150", width = "150"></div>';
+      var linkFunction = $compile(angular.element(html)),
+          newScope = $scope.$new();
       var picMarker = new L.marker([points[i].latitude, points[i].longitude], {
         icon: new picIcon({
           iconUrl: points[i].photoUrl
         })
       });
-      picMarker.bindPopup('<h6>'+points[i].description+'</h6><p>Click for details</p><img src = '+points[i].photoUrl+' height = "150", width = "150" ng-click="comments()">')
+      picMarker.bindPopup(linkFunction(newScope)[0]);
       // picMarker.click(console.log("test"+points[i].description+'photoURL'+points[i].photoUrl));
       markers.addLayer(picMarker);
     };
-    console.log();    
     return markers;
   };
   return {

@@ -30,8 +30,9 @@
   </div>
   <div class="card">
     <div class="item item-text-wrap" ng-repeat="comments in pointComment.comments.data" >
-       <div><strong>Username: </strong>{{comments.comment}}</div>
+      <div><strong>Username: </strong>{{comments.comment}}</div>
     </div>
+    <div ng-if="pointComment.comments.data.length == 0" class="item item-text-wrap"><strong>No comments yet...</strong></div>
   </div>
 
 <!--  <div class="container">
