@@ -56,15 +56,17 @@ angular.module('sceneIt', ['ionic','ngCordova', 'sceneIt.controllers'])
         templateUrl: "templates/browse.html",
         controller: 'GeoLocCtrl'
       }
-    },
-    onEnter: function(){
-        window.viewingMap = true;
-    },
-    onExit: function(){
-        window.viewingMap = false;
     }
   })
-
+  .state('app.listView', {
+    url: "/listView",
+    views: {
+      'menuContent': {
+        templateUrl: "templates/listView.html",
+        controller: 'listViewCtrl'
+      }
+    }
+  })
   .state('app.home', {
     url: "/home",
     views: {

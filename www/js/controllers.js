@@ -32,7 +32,93 @@ angular.module('sceneIt.controllers', ['ionic.contrib.frostedGlass', 'sceneIt.fi
     }, 1000);
   };
 })
+.controller('listViewCtrl', function($scope, $ionicModal, $ionicLoading, MapFactory){
+  $scope.results = [];
+  var dataOrder,
+      finalDataOrder;
+  var listPictures = function(positions){
+    MapFactory.getPoints()
+      .then(function(data){
+        var dataOrder = geolib.orderByDistance({latitude:positions.coords.latitude, longitude:positions.coords.longitude}, data);
+        for(var i = 0; i < dataOrder.length; i++){
+          $scope.results.push(data[dataOrder[i].key]);
+        }
+        console.log($scope.results);
+      });
+  };
+  var getLocation = function() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(listPictures);
+    } else {
+        console.log('Error grabbing location');
+    }
+  };
 
+  getLocation();
+
+  $ionicModal.fromTemplateUrl('templates/comments.html', {
+    scope: $scope
+  }).then(function(comments) {
+    $scope.commentModal = comments;
+  });
+
+
+  $scope.postComment = function(photoData){
+    $scope.commentData = {};
+    var commentPostPopup = $ionicPopup.show({
+      template: '<textarea rows=2 type="text" ng-model="commentData.comment">',
+      title: 'Enter your comments',
+      scope: $scope,
+      buttons: [
+        { text: 'Cancel' },
+        {
+          text: '<b>Save</b>',
+          type: 'button-positive',
+          onTap: function(e) {
+            if (!$scope.commentData.comment) {
+              //don't allow the user to close unless he enters wifi password
+              e.preventDefault();
+            } else {
+              MapFactory.postComment(photoData.id, photoData.userID, $scope.commentData.comment);
+              $scope.showComments(photoData.id);
+            }
+          }
+        }
+      ]
+    });
+    commentPostPopup.then(function(res) {
+      console.log('Tapped!', res);
+    });
+
+
+  };
+  $scope.doRefresh = function(){
+    getLocation()
+       // Stop the ion-refresher from spinning
+     $scope.$broadcast('scroll.refreshComplete');
+  };
+  $scope.showComments = function(id) {
+    $scope.pointComment = {};
+    $ionicLoading.show({
+      template: 'Loading...'
+    });
+    MapFactory.getPhotoData(id)
+      .then(function(data){
+        $scope.pointComment.data = data.data;
+        MapFactory.getCommentsForPhoto(id)
+          .then(function(comments){
+            $scope.pointComment.comments = comments;
+            $ionicLoading.hide();
+            $scope.commentModal.show();
+          });
+      });
+
+  };
+  $scope.closeComments = function() {
+    $scope.commentModal.hide();
+  };
+
+})
 .controller('GeoLocCtrl', function($scope, $interval,$ionicModal, $ionicLoading, $ionicPopup, $ionicScrollDelegate, $http, MapFactory) {
 
   $ionicModal.fromTemplateUrl('templates/comments.html', {
@@ -220,7 +306,7 @@ angular.module('sceneIt.controllers', ['ionic.contrib.frostedGlass', 'sceneIt.fi
        'Content-Type': 'application/json'
      },
      data: {desc: $scope.description}
-    }
+    };
     if($scope.description){
       $http(req).success(function(){
       //  alert('sending image');
@@ -229,14 +315,14 @@ angular.module('sceneIt.controllers', ['ionic.contrib.frostedGlass', 'sceneIt.fi
           $ionicLoading.hide();
           $cordovaProgress.showSuccess(true, "Success!");
           $timeout($cordovaProgress.hide, 2000);
-        }
+        },
 
-        var fail = function (error) {
+        fail = function (error) {
           $ionicLoading.hide();
           alert('upload Fail, please try again');
-        }
+        },
 
-        var options = new FileUploadOptions();
+        options = new FileUploadOptions();
         options.mimeType = "image/JPEG";
 
         var ft = new FileTransfer();
@@ -246,9 +332,11 @@ angular.module('sceneIt.controllers', ['ionic.contrib.frostedGlass', 'sceneIt.fi
   };
 })
 .factory('MapFactory', function($http, $compile){
+
   //getPoints function will return an array of objects
   var picserver = encodeURI('http://162.246.58.173:8000');
   var server = encodeURI('http://sceneit.azurewebsites.net/');
+
   var getPhotoData = function(id){
     console.log('gettin photo data with id', id);
     return $http.post(picserver+'/api/photo/data/getPhotoData', {id:id})
@@ -337,6 +425,7 @@ angular.module('sceneIt.controllers', ['ionic.contrib.frostedGlass', 'sceneIt.fi
     return markers;
   };
   return {
+    // getLocation: getLocation,
     getPhotoData: getPhotoData,
     getCommentsForPhoto: getCommentsForPhoto,
     postComment: postComment,

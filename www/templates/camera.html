@@ -1,15 +1,18 @@
 <ion-view view-title="Camera">
-  <ion-content>
+  <ion-content class="cameraContainer">
     <ion-list>  
-    <br><br><br>
-
-    <button ng-click="showCameraSelect()"  class="button button-block button-primary">Take a picture</button>
-    <!-- <button ng-click="selectPicture()"  class="button button-block button-primary">Select pic from album</button> -->
+  
+    <button ng-click="showCameraSelect()"  class="button button-positive button-block"><i class="icon ion-camera"></i>Take a picture</button>
     <div class='picPreviewAndText'>
       <img id="preview" width="200" height="200"></img>
+      <br><br>
       <ng-form name="descriptionBox">
-        <textarea id='desc' placeholder='Please enter a description [required]' type='text' rows='2' width="200" ng-model="description.comment"  ng-required="true"></textarea>
-       <button type="submit" ng-disabled="descriptionBox.$invalid"ng-click="uploadPicture()"  class="button button-block button-primary">upload pic</button>
+        <!-- <label class="item item-input"> -->
+          
+          <textarea id='desc' placeholder='Please enter a description [required]' type='text' rows='2' ng-model="description.comment"  ng-required="true"></textarea>
+       <!-- </label> -->
+       <br><br>
+         <button type="submit" ng-disabled="descriptionBox.$invalid"ng-click="uploadPicture()"  class="button button-block button-positive">upload pic</button>
     </ng-form>
     </div>
 

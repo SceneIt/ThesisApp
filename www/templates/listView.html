@@ -1,0 +1,17 @@
+<ion-view view-title="list View">
+  <ion-content class="listContainer">
+  <ion-refresher
+    pulling-text="Pull to refresh..."
+    on-refresh="doRefresh()">
+  </ion-refresher>
+    <div class="list">
+
+        <a class="item item-thumbnail-left" href="#" ng-repeat="photo in results">
+          <img src="{{photo.photoUrl}}" ng-click="showComments(photo.id)">
+          <h2>{{ photo.description }}</h2>
+          <p>{{photo.timeStamp | fromNow }}</p>
+        </a>
+    </div>
+  
+  </ion-content>
+</ion-view>

@@ -29,4 +29,6 @@ ion-view h1 {
   border: 1px solid black;
 }
 
-
+.cameraContainer {
+  padding: 5%;
+}
