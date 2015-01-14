@@ -10,7 +10,7 @@ angular.module('sceneIt.factories', ['ngCookies'])
 
   var username = function(){
     return _username;
-  }
+  };
 
   var create = function(usernameCreate){
     _username = usernameCreate;
@@ -18,7 +18,7 @@ angular.module('sceneIt.factories', ['ngCookies'])
 
   var destroy = function(){
     _username = null;
-  }
+  };
 
   return {
     create: create,
@@ -26,7 +26,7 @@ angular.module('sceneIt.factories', ['ngCookies'])
     destroy: destroy,
     username: username,
     _username: _username
-  }
+  };
 })
 
 .factory('Auth', function($state, $rootScope, $http, $window, $location, $cookies, Session){
@@ -69,6 +69,7 @@ angular.module('sceneIt.factories', ['ngCookies'])
       data: userInfo
     })
     .then(function(res){
+      console.log(res);
       Session.create(res.data.username);
       $state.go('app.browse');
     }))
@@ -84,14 +85,14 @@ angular.module('sceneIt.factories', ['ngCookies'])
       username: 'username',
       password: 'password',
       email: 'email'
-    }   
-      $rootScope.username = null;
-      Session.destroy();   
-      $location.path('/signin');
-      console.log('res',res, Session.username());
     }
-  );};
-
+      $rootScope.username = null;
+      Session.destroy();
+      $location.path('/signin');
+      console.log('res',res, Session.username(), $cookies.userID);
+    }
+  );
+};
   return {
     userInfo: userInfo,
     signin: signin,

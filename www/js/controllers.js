@@ -189,6 +189,7 @@ angular.module('sceneIt.controllers', ['ionic.contrib.frostedGlass', 'sceneIt.fi
         $scope.pointComment.data = data.data;
         MapFactory.getCommentsForPhoto(id)
           .then(function(comments){
+            console.log(comments);
             $scope.pointComment.comments = comments;
             $ionicLoading.hide();
             $scope.commentModal.show();
@@ -240,7 +241,16 @@ angular.module('sceneIt.controllers', ['ionic.contrib.frostedGlass', 'sceneIt.fi
 
 })
 
-.controller('cameraCtrl', function($http, $scope, $cordovaProgress, $ionicActionSheet, $timeout, $cordovaFile, $ionicLoading, Session) {
+.controller('cameraCtrl', function($http, $scope, $cordovaProgress, $ionicActionSheet, $timeout, $cordovaFile, $ionicLoading, Session, Auth) {
+  $scope.description = {};
+  $scope.description.comment = '';
+  $scope.description.username = 'bleh';
+  console.log($scope.description.username);
+  if(Auth.isAuthenticated()){
+    $scope.description.username = Session.username();
+  }
+  console.log($scope.description.username);
+
   $scope.showCameraSelect = function() {
     $ionicActionSheet.show({
      buttons: [
@@ -299,10 +309,10 @@ angular.module('sceneIt.controllers', ['ionic.contrib.frostedGlass', 'sceneIt.fi
       console.log('camera error');
 
     }, cameraOptions);
-  }
+  };
 
-  $scope.description = {};
-  $scope.description.comment = '';
+
+
 
   $scope.uploadPicture = function(){
     $ionicLoading.show({
@@ -393,7 +403,7 @@ angular.module('sceneIt.controllers', ['ionic.contrib.frostedGlass', 'sceneIt.fi
     }).then(function(res){
         console.log('uplodaded',res.data);
         return res.data;
-    })
+    });
   };
   // var plotPoints = function(points){
   //   var markers = L.markerClusterGroup();
