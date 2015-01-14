@@ -1,8 +1,8 @@
-angular.module('sceneIt.controllers', [])
+angular.module('sceneIt.controllers', ['ionic.contrib.frostedGlass', 'sceneIt.filters'])
 
-.controller('AppCtrl', function($scope, $ionicModal, $timeout) {
+.controller('AppCtrl', function($scope, $ionicModal, $timeout, Auth) {
   // Form data for the login modal
-  $scope.loginData = {};
+
 
   // Create the login modal that we will use later
   $ionicModal.fromTemplateUrl('templates/login.html', {
@@ -24,6 +24,14 @@ angular.module('sceneIt.controllers', [])
   // Perform the login action when the user submits the login form
   $scope.doLogin = function() {
     console.log('Doing login', $scope.loginData);
+    $scope.user = {
+      username: 'username',
+      password: 'password'
+    };
+
+   $scope.user =  Auth.userInfo;
+
+   Auth.signin(Auth.userInfo);
 
     // Simulate a login delay. Remove this and replace with your login
     // code if using a login system
@@ -31,9 +39,35 @@ angular.module('sceneIt.controllers', [])
       $scope.closeLogin();
     }, 1000);
   };
+  $scope.signOut = function(){
+    console.log('signing out');
+    Auth.signout();
+  };
 })
+.controller('listViewCtrl', function($scope, $ionicModal, $ionicLoading, MapFactory){
+  $scope.results = [];
+  var dataOrder,
+      finalDataOrder;
+  var listPictures = function(positions){
+    MapFactory.getPoints()
+      .then(function(data){
+        var dataOrder = geolib.orderByDistance({latitude:positions.coords.latitude, longitude:positions.coords.longitude}, data);
+        for(var i = 0; i < dataOrder.length; i++){
+          console.log("data",(dataOrder[i].distance*0.000621371192).toFixed(2));
+          $scope.results.push([data[dataOrder[i].key],(dataOrder[i].distance*0.000621371192).toFixed(2)]);
+        }
+        console.log($scope.results);
+      });
+  };
+  var getLocation = function() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(listPictures);
+    } else {
+        console.log('Error grabbing location');
+    }
+  };
 
-.controller('GeoLocCtrl', function($scope, $interval,$ionicModal, $compile, $http, MapFactory) {
+  getLocation();
 
   $ionicModal.fromTemplateUrl('templates/comments.html', {
     scope: $scope
@@ -41,40 +75,127 @@ angular.module('sceneIt.controllers', [])
     $scope.commentModal = comments;
   });
 
-  $scope.plotPoints = function(points){
-    var markers = L.markerClusterGroup();
-    var picIcon = L.Icon.extend({
-      options: {
-        iconSize: [40, 40]
-      }
+
+  $scope.postComment = function(photoData){
+    $scope.commentData = {};
+    var commentPostPopup = $ionicPopup.show({
+      template: '<textarea rows=2 type="text" ng-model="commentData.comment">',
+      title: 'Enter your comments',
+      scope: $scope,
+      buttons: [
+        { text: 'Cancel' },
+        {
+          text: '<b>Save</b>',
+          type: 'button-positive',
+          onTap: function(e) {
+            if (!$scope.commentData.comment) {
+              //don't allow the user to close unless he enters wifi password
+              e.preventDefault();
+            } else {
+              MapFactory.postComment(photoData.id, photoData.userID, $scope.commentData.comment);
+              $scope.showComments(photoData.id);
+            }
+          }
+        }
+      ]
     });
-    for(var i = 0; i < points.length; i ++){
-      var html = '<div ng-click="comments('+points[i].id+')"><h6>'+points[i].description+'</h6><p>Click for details</p>' +
-          '<img src = '+points[i].photoUrl+' height = "150", width = "150"></div>';
-      var linkFunction = $compile(angular.element(html)),
-          newScope = $scope.$new();
-      var picMarker = new L.marker([points[i].latitude, points[i].longitude], {
-        icon: new picIcon({
-          iconUrl: points[i].photoUrl
-        })
+    commentPostPopup.then(function(res) {
+      console.log('Tapped!', res);
+    });
+
+
+  };
+  $scope.doRefresh = function(){
+    getLocation()
+       // Stop the ion-refresher from spinning
+     $scope.$broadcast('scroll.refreshComplete');
+  };
+  $scope.showComments = function(id) {
+    $scope.pointComment = {};
+    $ionicLoading.show({
+      template: 'Loading...'
+    });
+    MapFactory.getPhotoData(id)
+      .then(function(data){
+        $scope.pointComment.data = data.data;
+        MapFactory.getCommentsForPhoto(id)
+          .then(function(comments){
+            $scope.pointComment.comments = comments;
+            $ionicLoading.hide();
+            $scope.commentModal.show();
+          });
       });
-      picMarker.bindPopup(linkFunction(newScope)[0]);
-      // picMarker.click(console.log("test"+points[i].description+'photoURL'+points[i].photoUrl));
-      markers.addLayer(picMarker);
-    };
-    console.log();    
-    return markers;
+
+  };
+  $scope.closeComments = function() {
+    $scope.commentModal.hide();
   };
 
-  var server = encodeURI('http://162.246.58.173:8000/api/photo/data/getPhotoData');
-  $scope.pointComment;
-  $scope.comments = function(id) {
-    $http.post(server, {id:id}).success(function(data){
-      $scope.pointComment = data;
+})
+.controller('GeoLocCtrl', function($scope, $interval,$ionicModal, $ionicLoading, $ionicPopup, $ionicScrollDelegate, $http, MapFactory, Auth, Session) {
+  console.log(Auth.isAuthenticated());
+  console.log(Session.username());
+
+  $ionicModal.fromTemplateUrl('templates/comments.html', {
+    scope: $scope
+  }).then(function(comments) {
+    $scope.commentModal = comments;
+  });
+
+
+  $scope.postComment = function(photoData){
+    $scope.commentData = {};
+    var commentPostPopup = $ionicPopup.show({
+      template: '<textarea rows=2 type="text" ng-model="commentData.comment">',
+      title: 'Enter your comments',
+      scope: $scope,
+      buttons: [
+        { text: 'Cancel' },
+        {
+          text: '<b>Save</b>',
+          type: 'button-positive',
+          onTap: function(e) {
+            if (!$scope.commentData.comment) {
+              //don't allow the user to close unless he enters wifi password
+              e.preventDefault();
+            } else {
+              MapFactory.postComment(photoData.id, photoData.userID, $scope.commentData.comment);
+              $scope.showComments(photoData.id);
+            }
+          }
+        }
+      ]
+    });
+    commentPostPopup.then(function(res) {
+      console.log('Tapped!', res);
     });
 
-    console.log('click click', $scope.pointComment);
-    $scope.commentModal.show();
+
+  };
+  $scope.doRefresh = function(id){
+    $scope.showComments(id)
+    .finally(function() {
+           // Stop the ion-refresher from spinning
+           $scope.$broadcast('scroll.refreshComplete');
+         });
+  };
+  $scope.showComments = function(id) {
+    $scope.pointComment = {};
+    $ionicLoading.show({
+      template: 'Loading...'
+    });
+    MapFactory.getPhotoData(id)
+      .then(function(data){
+        $scope.pointComment.data = data.data;
+        MapFactory.getCommentsForPhoto(id)
+          .then(function(comments){
+            console.log(comments);
+            $scope.pointComment.comments = comments;
+            $ionicLoading.hide();
+            $scope.commentModal.show();
+          });
+      });
+
   };
   $scope.closeComments = function() {
     $scope.commentModal.hide();
@@ -92,7 +213,7 @@ angular.module('sceneIt.controllers', [])
   $scope.initPoints = function(){
     MapFactory.getPoints().then(function(data){
 
-      map.addLayer($scope.plotPoints(data));
+      map.addLayer(MapFactory.plotPoints(data, $scope));
     });
   };
 
@@ -120,7 +241,41 @@ angular.module('sceneIt.controllers', [])
 
 })
 
-.controller('cameraCtrl', function($http, $scope, $cordovaProgress, $timeout, $cordovaFile) {
+.controller('cameraCtrl', function($http, $scope, $cordovaProgress, $ionicActionSheet, $timeout, $cordovaFile, $ionicLoading, Session, Auth) {
+  $scope.description = {};
+  $scope.description.comment = '';
+  $scope.description.username = 'bleh';
+  console.log($scope.description.username);
+  if(Auth.isAuthenticated()){
+    $scope.description.username = Session.username();
+  }
+  console.log($scope.description.username);
+
+  $scope.showCameraSelect = function() {
+    $ionicActionSheet.show({
+     buttons: [
+       { text: 'Take a picture' },
+       { text: 'Select from album' }
+     ],
+     titleText: 'Select your source',
+     cancelText: 'Cancel',
+     cancel: function() {
+        return true;
+      },
+     buttonClicked: function(index) {
+      if(index === 0){
+        $scope.takePicture();
+        return true;
+      }
+      if(index === 1){
+        $scope.selectPicture();
+        return true;
+      }
+     }
+   });
+  };
+
+
   $scope.data = '_';
   var cameraOptions = {
     quality: 80,
@@ -154,49 +309,83 @@ angular.module('sceneIt.controllers', [])
       console.log('camera error');
 
     }, cameraOptions);
-  }
+  };
 
-  $scope.description = {};
-  $scope.description.comment = '';
+
+
 
   $scope.uploadPicture = function(){
+    $ionicLoading.show({
+      template: 'Uploading...'
+    });
     // var server = encodeURI('http://10.6.32.229:8000/photo/take');     //HackReactor test
     // var server = encodeURI('http://192.168.1.109:8000/photo/take'); //home test
-    var server = encodeURI('http://162.246.58.173:8000/photo/take'); // vps test
+    var picserver = encodeURI('http://162.246.58.173:8000/photo/take'); // vps test
     // var server = encodeURI('corruptflamingo-staging.azurewebsites.net/photo/take'); //azure staging test
     var req = {
      method: 'POST',
-     url: server,
+     url: picserver,
      headers: {
        'Content-Type': 'application/json'
      },
      data: {desc: $scope.description}
-    }
+    };
     if($scope.description){
       $http(req).success(function(){
       //  alert('sending image');
       
         var win = function (r) {
+          $ionicLoading.hide();
           $cordovaProgress.showSuccess(true, "Success!");
           $timeout($cordovaProgress.hide, 2000);
-        }
+        },
 
-        var fail = function (error) {
-            alert('upload Fail');
-        }
+        fail = function (error) {
+          $ionicLoading.hide();
+          alert('upload Fail, please try again');
+        },
 
-        var options = new FileUploadOptions();
+        options = new FileUploadOptions();
         options.mimeType = "image/JPEG";
 
         var ft = new FileTransfer();
-        ft.upload($scope.imageData, server, win, fail, options);
+        ft.upload($scope.imageData, picserver, win, fail, options);
       });
     }
   };
+  
 })
-.factory('MapFactory', function($http){
+.factory('MapFactory', function($http, $compile){
+
   //getPoints function will return an array of objects
-  var server = encodeURI('http://162.246.58.173:8000');
+  var picserver = encodeURI('http://162.246.58.173:8000');
+  var server = encodeURI('http://sceneit.azurewebsites.net/');
+
+  var getPhotoData = function(id){
+    console.log('gettin photo data with id', id);
+    return $http.post(picserver+'/api/photo/data/getPhotoData', {id:id})
+      .success(function(data){
+      return data;
+    }).error(function(){
+      console.log('probably getting Photo Data with id',id);
+    });
+  };
+  var getCommentsForPhoto = function(id){
+    return $http.get(server+'/api/comments/', {params: {id: id}})
+    .success(function(data){
+      return data;
+    });
+  };
+  var postComment = function(id, user, comment){
+    console.log(id, user, comment);
+    return $http({
+      method: 'POST',
+      url: server+'/api/comments/',
+      data: {photoid: id, userid: user, comment: comment}
+    }).then(function(res){
+        return res.data;
+    });
+  };
   var getPoints = function(){
     return $http({
       method: 'GET',
@@ -209,14 +398,34 @@ angular.module('sceneIt.controllers', [])
   var postPhotos = function(photoData){
     return $http({
       method: 'POST',
-      url: server + 'api/photo/data',
+      url: picserver + 'api/photo/data',
       data: photoData
     }).then(function(res){
         console.log('uplodaded',res.data);
         return res.data;
-    })
+    });
   };
-  var plotPoints = function(points){
+  // var plotPoints = function(points){
+  //   var markers = L.markerClusterGroup();
+  //   var picIcon = L.Icon.extend({
+  //     options: {
+  //       iconSize: [40, 40]
+  //     }
+  //   });
+  //   for(var i = 0; i < points.length; i ++){
+  //     var picMarker = new L.marker([points[i].latitude, points[i].longitude], {
+  //       icon: new picIcon({
+  //         iconUrl: points[i].photoUrl
+  //       })
+  //     });
+  //     picMarker.bindPopup('<h6>'+points[i].description+'</h6><p>Click for details</p><img src = '+points[i].photoUrl+' height = "150", width = "150" ng-click="comments()">')
+  //     // picMarker.click(console.log("test"+points[i].description+'photoURL'+points[i].photoUrl));
+  //     markers.addLayer(picMarker);
+  //   };
+  //   console.log();    
+  //   return markers;
+  // };
+  var plotPoints = function(points, $scope){
     var markers = L.markerClusterGroup();
     var picIcon = L.Icon.extend({
       options: {
@@ -224,21 +433,28 @@ angular.module('sceneIt.controllers', [])
       }
     });
     for(var i = 0; i < points.length; i ++){
-      var picMarker = new L.marker([points[i].latitude, points[i].longitude], {
-        icon: new picIcon({
-          iconUrl: points[i].photoUrl
-        })
+      var html = '<div ng-click="showComments('+points[i].id+')"><h6>'+points[i].description+'</h6>' +
+          '<img src = '+points[i].photoUrl+' height = "150", width = "150"></div>',
+          linkFunction = $compile(angular.element(html)),
+          newScope = $scope.$new(),
+          picMarker = new L.marker([points[i].latitude, points[i].longitude], {
+            icon: new picIcon({
+              iconUrl: points[i].photoUrl
+            })
       });
-      picMarker.bindPopup('<h6>'+points[i].description+'</h6><p>Click for details</p><img src = '+points[i].photoUrl+' height = "150", width = "150" ng-click="comments()">')
+      picMarker.bindPopup(linkFunction(newScope)[0]);
       // picMarker.click(console.log("test"+points[i].description+'photoURL'+points[i].photoUrl));
       markers.addLayer(picMarker);
-    };
-    console.log();    
+    }
     return markers;
   };
   return {
+    // getLocation: getLocation,
+    getPhotoData: getPhotoData,
+    getCommentsForPhoto: getCommentsForPhoto,
+    postComment: postComment,
     getPoints : getPoints,
     postPhotos : postPhotos,
     plotPoints : plotPoints
   };
-});;
+});
