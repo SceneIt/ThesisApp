@@ -48,3 +48,13 @@ ion-view h1 {
   font-weight: 100;
   color: white;
 }
+
+.leaflet-bar a:first-child {
+  background-color: black;
+  color: teal;
+}
+
+.leaflet-bar a:last-child {
+  background-color: black;
+  color:teal;
+}
