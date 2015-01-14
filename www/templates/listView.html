@@ -5,11 +5,11 @@
     on-refresh="doRefresh()">
   </ion-refresher>
     <div class="list">
-
         <a class="item item-thumbnail-left" href="#" ng-repeat="photo in results">
-          <img src="{{photo.photoUrl}}" ng-click="showComments(photo.id)">
-          <h2>{{ photo.description }}</h2>
-          <p>{{photo.timeStamp | fromNow }}</p>
+          <img src="{{photo[0].photoUrl}}" ng-click="showComments(photo.id)">
+          <h2>{{ photo[0].description }}</h2>
+          <p>{{photo[0].timeStamp | fromNow }}</p>
+          <p>{{photo[1] }} mi</p>
         </a>
     </div>
   

@@ -5,9 +5,9 @@
 // the 2nd parameter is an array of 'requires'
 // 'starter.controllers' is found in controllers.js
 
-angular.module('sceneIt', ['ionic','ngCordova', 'sceneIt.controllers'])
+angular.module('sceneIt', ['ionic','ngCordova', 'sceneIt.controllers', 'sceneIt.factories'])
 
-.run(function($ionicPlatform) {
+.run(function($ionicPlatform, $http, $cookies) {
   $ionicPlatform.ready(function() {
     // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
     // for form inputs)
@@ -19,9 +19,11 @@ angular.module('sceneIt', ['ionic','ngCordova', 'sceneIt.controllers'])
       StatusBar.styleDefault();
     }
   });
+  // $http.defaults.headers.post['X-CSRFToken'] = $cookies.csrftoken;
 })
 
-.config(function($stateProvider, $urlRouterProvider) {
+.config(function($stateProvider, $urlRouterProvider, $httpProvider) {
+  // $httpProvider.defaults.withCredentials = true;
   $stateProvider
 
   .state('app', {

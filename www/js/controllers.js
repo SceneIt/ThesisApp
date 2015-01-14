@@ -1,8 +1,8 @@
 angular.module('sceneIt.controllers', ['ionic.contrib.frostedGlass', 'sceneIt.filters'])
 
-.controller('AppCtrl', function($scope, $ionicModal, $timeout) {
+.controller('AppCtrl', function($scope, $ionicModal, $timeout, Auth) {
   // Form data for the login modal
-  $scope.loginData = {};
+
 
   // Create the login modal that we will use later
   $ionicModal.fromTemplateUrl('templates/login.html', {
@@ -24,12 +24,24 @@ angular.module('sceneIt.controllers', ['ionic.contrib.frostedGlass', 'sceneIt.fi
   // Perform the login action when the user submits the login form
   $scope.doLogin = function() {
     console.log('Doing login', $scope.loginData);
+    $scope.user = {
+      username: 'username',
+      password: 'password'
+    };
+
+   $scope.user =  Auth.userInfo;
+
+   Auth.signin(Auth.userInfo);
 
     // Simulate a login delay. Remove this and replace with your login
     // code if using a login system
     $timeout(function() {
       $scope.closeLogin();
     }, 1000);
+  };
+  $scope.signOut = function(){
+    console.log('signing out');
+    Auth.signout();
   };
 })
 .controller('listViewCtrl', function($scope, $ionicModal, $ionicLoading, MapFactory){
@@ -41,7 +53,8 @@ angular.module('sceneIt.controllers', ['ionic.contrib.frostedGlass', 'sceneIt.fi
       .then(function(data){
         var dataOrder = geolib.orderByDistance({latitude:positions.coords.latitude, longitude:positions.coords.longitude}, data);
         for(var i = 0; i < dataOrder.length; i++){
-          $scope.results.push(data[dataOrder[i].key]);
+          console.log("data",(dataOrder[i].distance*0.000621371192).toFixed(2));
+          $scope.results.push([data[dataOrder[i].key],(dataOrder[i].distance*0.000621371192).toFixed(2)]);
         }
         console.log($scope.results);
       });
@@ -119,7 +132,9 @@ angular.module('sceneIt.controllers', ['ionic.contrib.frostedGlass', 'sceneIt.fi
   };
 
 })
-.controller('GeoLocCtrl', function($scope, $interval,$ionicModal, $ionicLoading, $ionicPopup, $ionicScrollDelegate, $http, MapFactory) {
+.controller('GeoLocCtrl', function($scope, $interval,$ionicModal, $ionicLoading, $ionicPopup, $ionicScrollDelegate, $http, MapFactory, Auth, Session) {
+  console.log(Auth.isAuthenticated());
+  console.log(Session.username());
 
   $ionicModal.fromTemplateUrl('templates/comments.html', {
     scope: $scope
@@ -225,10 +240,8 @@ angular.module('sceneIt.controllers', ['ionic.contrib.frostedGlass', 'sceneIt.fi
 
 })
 
-.controller('cameraCtrl', function($http, $scope, $cordovaProgress, $ionicActionSheet, $timeout, $cordovaFile, $ionicLoading) {
-  
+.controller('cameraCtrl', function($http, $scope, $cordovaProgress, $ionicActionSheet, $timeout, $cordovaFile, $ionicLoading, Session) {
   $scope.showCameraSelect = function() {
-    console.log('clicky showcamera select');
     $ionicActionSheet.show({
      buttons: [
        { text: 'Take a picture' },
@@ -240,11 +253,11 @@ angular.module('sceneIt.controllers', ['ionic.contrib.frostedGlass', 'sceneIt.fi
         return true;
       },
      buttonClicked: function(index) {
-      if(index == 0){
+      if(index === 0){
         $scope.takePicture();
         return true;
       }
-      if(index == 1){
+      if(index === 1){
         $scope.selectPicture();
         return true;
       }
@@ -330,6 +343,7 @@ angular.module('sceneIt.controllers', ['ionic.contrib.frostedGlass', 'sceneIt.fi
       });
     }
   };
+  
 })
 .factory('MapFactory', function($http, $compile){
 
