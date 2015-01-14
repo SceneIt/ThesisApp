@@ -210,6 +210,8 @@ angular.module('sceneIt.controllers', ['ionic.contrib.frostedGlass', 'sceneIt.fi
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
   });
 
+var searchControl = new L.esri.Controls.Geosearch({position:'topright', expanded:true, collapseAfterResult:false, title: 'Teleport Me To'}).addTo(map);
+
   $scope.initPoints = function(){
     MapFactory.getPoints().then(function(data){
 
