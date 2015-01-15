@@ -49,18 +49,16 @@ ion-view h1 {
   color: white;
 }
 
-.leaflet-bar a:first-child {
-  background-color: black;
-  color: teal;
-  z-index:99;
+.geocoder-control {
+  color:green;
 }
-
-.leaflet-bar a:last-child {
-  background-color: black;
-  color:teal;
-  z-index:99;
-}
-
 .geocoder-control-expanded {
   color:teal;
 }
+
+.leaflet-popup-content-wrapper h6 {
+  color:white;
+  font-family: "Helvetica Light","Helvetica Neue","Helvetica","Arial","Verdana","sans-serif";
+  font-weight: 100;
+}
+
