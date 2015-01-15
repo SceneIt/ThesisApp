@@ -31,11 +31,12 @@ angular.module('sceneIt.factories', ['ngCookies'])
 
 .factory('Auth', function($state, $rootScope, $http, $window, $location, $cookies, Session){
   var server = "http://corruptflamingo-staging.azurewebsites.net";
-  var userInfo = {
-    username: 'username',
-    password: 'password',
-    email: 'email'
-  };
+  // var server = "http://localhost:8000";
+  // var userInfo = {
+  //   username: 'username',
+  //   password: 'password',
+  //   email: 'email'
+  // };
 
   //Keep state when refreshed
   function init() {
@@ -54,7 +55,7 @@ angular.module('sceneIt.factories', ['ngCookies'])
     $http({
       method: 'POST',
       url: server + '/api/user/signup',
-      data: userInfo
+      data: user
     })
     .then(function(res){
       Session.create(res.data.username);
@@ -62,7 +63,7 @@ angular.module('sceneIt.factories', ['ngCookies'])
     });
   };
 
-  var signin = function(){
+  var signin = function(userInfo){
     return ($http({
       method: 'POST',
       url: server + '/api/user/signin',
@@ -70,9 +71,12 @@ angular.module('sceneIt.factories', ['ngCookies'])
     })
     .then(function(res){
       console.log(res);
+      console.log('signed in res:',res.data.username);
       Session.create(res.data.username);
-      $state.go('app.browse');
-    }))
+      console.log(res.data);
+      $rootScope.auth.userid = res.data.userid;
+      $rootScope.auth.loggedIn = true;
+    }));
   };
 
   var signout = function(){
@@ -85,7 +89,7 @@ angular.module('sceneIt.factories', ['ngCookies'])
       username: 'username',
       password: 'password',
       email: 'email'
-    }
+    };
       $rootScope.username = null;
       Session.destroy();
       $location.path('/signin');
@@ -94,11 +98,11 @@ angular.module('sceneIt.factories', ['ngCookies'])
   );
 };
   return {
-    userInfo: userInfo,
+    // userInfo: userInfo,
     signin: signin,
     signup: signup,
     signout: signout,
     isAuthenticated: isAuthenticated
 
-  }
+  };
 });

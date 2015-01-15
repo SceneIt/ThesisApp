@@ -1,6 +1,6 @@
 angular.module('sceneIt.controllers', ['ionic.contrib.frostedGlass', 'sceneIt.filters'])
 
-.controller('AppCtrl', function($scope, $ionicModal, $timeout, Auth) {
+.controller('AppCtrl', function($scope, $ionicModal, $ionicLoading, $timeout, Auth) {
   // Form data for the login modal
 
 
@@ -11,6 +11,11 @@ angular.module('sceneIt.controllers', ['ionic.contrib.frostedGlass', 'sceneIt.fi
     $scope.modal = modal;
   });
 
+  $scope.user = {
+    username: 'username',
+    password: 'password',
+    email: 'email'
+  };
   // Triggered in the login modal to close it
   $scope.closeLogin = function() {
     $scope.modal.hide();
@@ -23,28 +28,31 @@ angular.module('sceneIt.controllers', ['ionic.contrib.frostedGlass', 'sceneIt.fi
 
   // Perform the login action when the user submits the login form
   $scope.doLogin = function() {
-    console.log('Doing login', $scope.loginData);
-    $scope.user = {
-      username: 'username',
-      password: 'password'
-    };
+    $ionicLoading.show({
+      template: 'Logging in..'
+    });
 
-   $scope.user =  Auth.userInfo;
+   // $scope.user =  Auth.userInfo;
 
-   Auth.signin(Auth.userInfo);
+  console.log('Doing login', $scope.user);
+  Auth.signin($scope.user)
+    .finally(function(){
+      $ionicLoading.hide();
+      $scope.modal.hide();
+    });
 
     // Simulate a login delay. Remove this and replace with your login
     // code if using a login system
-    $timeout(function() {
-      $scope.closeLogin();
-    }, 1000);
   };
+
   $scope.signOut = function(){
     console.log('signing out');
     Auth.signout();
   };
 })
-.controller('listViewCtrl', function($scope, $ionicModal, $ionicLoading, MapFactory){
+.controller('listViewCtrl', function($scope, $ionicModal, $ionicLoading, MapFactory, $rootScope){
+  $scope.username = $rootScope.auth.username;
+  console.log('username',$scope.username);
   $scope.results = [];
   var dataOrder,
       finalDataOrder;
@@ -106,7 +114,7 @@ angular.module('sceneIt.controllers', ['ionic.contrib.frostedGlass', 'sceneIt.fi
 
   };
   $scope.doRefresh = function(){
-    getLocation()
+    getLocation();
        // Stop the ion-refresher from spinning
      $scope.$broadcast('scroll.refreshComplete');
   };
@@ -132,8 +140,8 @@ angular.module('sceneIt.controllers', ['ionic.contrib.frostedGlass', 'sceneIt.fi
   };
 
 })
-.controller('GeoLocCtrl', function($scope, $interval,$ionicModal, $ionicLoading, $ionicPopup, $ionicScrollDelegate, $http, MapFactory, Auth, Session) {
-  console.log(Auth.isAuthenticated());
+.controller('GeoLocCtrl', function($scope, $rootScope, $interval,$ionicModal, $ionicLoading, $ionicPopup, $ionicScrollDelegate, $http, MapFactory, Auth, Session) {
+  console.log($rootScope.auth);
   console.log(Session.username());
 
   $ionicModal.fromTemplateUrl('templates/comments.html', {
@@ -159,7 +167,7 @@ angular.module('sceneIt.controllers', ['ionic.contrib.frostedGlass', 'sceneIt.fi
               //don't allow the user to close unless he enters wifi password
               e.preventDefault();
             } else {
-              MapFactory.postComment(photoData.id, photoData.userID, $scope.commentData.comment);
+              MapFactory.postComment(photoData.id, $rootScope.auth.userid, $scope.commentData.comment);
               $scope.showComments(photoData.id);
             }
           }
@@ -212,8 +220,14 @@ angular.module('sceneIt.controllers', ['ionic.contrib.frostedGlass', 'sceneIt.fi
 
   $scope.initPoints = function(){
     MapFactory.getPoints().then(function(data){
-
-      map.addLayer(MapFactory.plotPoints(data, $scope));
+      // console.log('updating map', mainLayer);
+      // if(mainLayer){
+      //   console.log('remove layer');
+      // }
+      console.log(map.hasLayer(mainLayer));
+      // map.removeLayer(mainLayer);
+      var plotLayer = MapFactory.plotPoints(data, $scope);
+      var mainLayer = map.addLayer(plotLayer);
     });
   };
 
@@ -241,14 +255,11 @@ angular.module('sceneIt.controllers', ['ionic.contrib.frostedGlass', 'sceneIt.fi
 
 })
 
-.controller('cameraCtrl', function($http, $scope, $cordovaProgress, $ionicActionSheet, $timeout, $cordovaFile, $ionicLoading, Session, Auth) {
+.controller('cameraCtrl', function($http, $scope, $rootScope, $cordovaProgress, $ionicActionSheet, $timeout, $cordovaFile, $ionicLoading, Session, Auth) {
   $scope.description = {};
   $scope.description.comment = '';
-  $scope.description.username = 'bleh';
-  console.log($scope.description.username);
-  if(Auth.isAuthenticated()){
-    $scope.description.username = Session.username();
-  }
+  $scope.description.auth = $rootScope.auth;
+
   console.log($scope.description.username);
 
   $scope.showCameraSelect = function() {
@@ -359,7 +370,7 @@ angular.module('sceneIt.controllers', ['ionic.contrib.frostedGlass', 'sceneIt.fi
 
   //getPoints function will return an array of objects
   var picserver = encodeURI('http://162.246.58.173:8000');
-  var server = encodeURI('http://sceneit.azurewebsites.net/');
+  var server = encodeURI('http://mappix.azurewebsites.net');
 
   var getPhotoData = function(id){
     console.log('gettin photo data with id', id);

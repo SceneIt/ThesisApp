@@ -7,7 +7,9 @@
 
 angular.module('sceneIt', ['ionic','ngCordova', 'sceneIt.controllers', 'sceneIt.factories'])
 
-.run(function($ionicPlatform, $http, $cookies) {
+.run(function($ionicPlatform, $http, $cookies, $rootScope) {
+  $rootScope.auth = {loggedIn: false, userid: null};
+
   $ionicPlatform.ready(function() {
     // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
     // for form inputs)
