@@ -431,17 +431,20 @@ var searchControl = new L.esri.Controls.Geosearch({position:'topright', expanded
     var markers = L.markerClusterGroup();
     var picIcon = L.Icon.extend({
       options: {
-        iconSize: [40, 40]
+        iconSize: [40, 40],
+        shadowSize: [50,60],
+        shadowAnchor: [25,25]
       }
     });
     for(var i = 0; i < points.length; i ++){
       var html = '<div ng-click="showComments('+points[i].id+')"><h6>'+points[i].description+'</h6>' +
-          '<img src = '+points[i].photoUrl+' height = "150", width = "150"></div>',
+          '<div class ="prof-pic"<img src = '+points[i].photoUrl+' height = "150", width = "150"></div>',
           linkFunction = $compile(angular.element(html)),
           newScope = $scope.$new(),
           picMarker = new L.marker([points[i].latitude, points[i].longitude], {
             icon: new picIcon({
-              iconUrl: points[i].photoUrl
+              iconUrl: points[i].photoUrl,
+              shadowUrl: '../img/polaroid3.png'
             })
       });
       picMarker.bindPopup(linkFunction(newScope)[0]);
