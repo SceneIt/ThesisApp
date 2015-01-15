@@ -432,8 +432,8 @@ var searchControl = new L.esri.Controls.Geosearch({position:'topright', expanded
     var picIcon = L.Icon.extend({
       options: {
         iconSize: [40, 40],
-        shadowSize: [50,60],
-        shadowAnchor: [25,25]
+        shadowSize: [45,51],
+        shadowAnchor: [22,23.5]
       }
     });
     for(var i = 0; i < points.length; i ++){
