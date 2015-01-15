@@ -22,15 +22,12 @@ coverage
 .grunt
 
 # Compiled Dirs (http://nodejs.org/api/addons.html)
-#build/
-#dist/
+build/
+dist/
 
 # Dependency directorys
 # Deployed apps should consider commenting these lines out:
 # see https://npmjs.org/doc/faq.html#Should-I-check-my-node_modules-folder-into-git
 node_modules/
 platforms/
-bower_components-folder-into-git
-bower_components/
-
 
