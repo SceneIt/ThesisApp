@@ -214,9 +214,11 @@ angular.module('sceneIt.controllers', ['ionic.contrib.frostedGlass', 'sceneIt.fi
   var map = L.map('map', {
     zoom: 10
   });
-  var layer = L.tileLayer('http://{s}.tiles.mapbox.com/v3/scenit.kgp870je/{z}/{x}/{y}.png',{
+  var layer = L.tileLayer('http://{s}.tiles.mapbox.com/v3/mochicat8.kmifnp9g/{z}/{x}/{y}.png',{
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
   });
+
+var searchControl = new L.esri.Controls.Geosearch({position:'topright', expanded:true, collapseAfterResult:false, title: 'Teleport Me To'}).addTo(map);
 
   $scope.initPoints = function(){
     MapFactory.getPoints().then(function(data){
@@ -440,17 +442,20 @@ angular.module('sceneIt.controllers', ['ionic.contrib.frostedGlass', 'sceneIt.fi
     var markers = L.markerClusterGroup();
     var picIcon = L.Icon.extend({
       options: {
-        iconSize: [40, 40]
+        iconSize: [40, 40],
+        shadowSize: [45,51],
+        shadowAnchor: [22,23.5]
       }
     });
     for(var i = 0; i < points.length; i ++){
       var html = '<div ng-click="showComments('+points[i].id+')"><h6>'+points[i].description+'</h6>' +
-          '<img src = '+points[i].photoUrl+' height = "150", width = "150"></div>',
+          '<div class ="prof-pic"<img src = '+points[i].photoUrl+' height = "150", width = "150"></div>',
           linkFunction = $compile(angular.element(html)),
           newScope = $scope.$new(),
           picMarker = new L.marker([points[i].latitude, points[i].longitude], {
             icon: new picIcon({
-              iconUrl: points[i].photoUrl
+              iconUrl: points[i].photoUrl,
+              shadowUrl: '../img/polaroid3.png'
             })
       });
       picMarker.bindPopup(linkFunction(newScope)[0]);

@@ -12,7 +12,7 @@ ion-view h1 {
   font-size: 1.5em;
   letter-spacing: 0.16rem;
   font-weight: 100;
-  color:black;
+  color: teal;
 }
 
 #map {
@@ -31,4 +31,36 @@ ion-view h1 {
 
 .cameraContainer {
   padding: 5%;
+}
+
+[nav-bar-transition="ios"] [nav-bar="active"] .bar {
+  /*background-color: rgb(57, 139, 277);*/
+  background-color:teal;
+}
+.bar.bar-stable {
+  background-color: teal;
+
+}
+.bar.bar-stable .title {
+  font-family: "Helvetica Light","Helvetica Neue","Helvetica","Arial","Verdana","sans-serif";
+  font-size: 1.5em;
+  letter-spacing: 0.16rem;
+  font-weight: 100;
+  color: white;
+}
+
+.leaflet-bar a:first-child {
+  background-color: black;
+  color: teal;
+  z-index:99;
+}
+
+.leaflet-bar a:last-child {
+  background-color: black;
+  color:teal;
+  z-index:99;
+}
+
+.geocoder-control-expanded {
+  color:teal;
 }
