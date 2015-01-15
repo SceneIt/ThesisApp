@@ -204,7 +204,8 @@ angular.module('sceneIt.controllers', ['ionic.contrib.frostedGlass', 'sceneIt.fi
   var dataPoints = 0,
       currentDataPoints = 0;
   var map = L.map('map', {
-    zoom: 10
+    zoom: 10,
+    zoomControl:false
   });
   var layer = L.tileLayer('http://{s}.tiles.mapbox.com/v3/mochicat8.kmifnp9g/{z}/{x}/{y}.png',{
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -437,8 +438,8 @@ var searchControl = new L.esri.Controls.Geosearch({position:'topright', expanded
       }
     });
     for(var i = 0; i < points.length; i ++){
-      var html = '<div ng-click="showComments('+points[i].id+')"><h6>'+points[i].description+'</h6>' +
-          '<div class ="prof-pic"<img src = '+points[i].photoUrl+' height = "150", width = "150"></div>',
+      var html = '<div class ="pic-box" ng-click="showComments('+points[i].id+')"><h6>'+points[i].description+'</h6>' +
+          '<img src = '+points[i].photoUrl+' height = "150", width = "150"></div>',
           linkFunction = $compile(angular.element(html)),
           newScope = $scope.$new(),
           picMarker = new L.marker([points[i].latitude, points[i].longitude], {
