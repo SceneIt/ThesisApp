@@ -5,7 +5,13 @@
 // the 2nd parameter is an array of 'requires'
 // 'starter.controllers' is found in controllers.js
 
-angular.module('sceneIt', ['ionic','ngCordova', 'sceneIt.controllers', 'sceneIt.factories'])
+angular.module('sceneIt', [
+  'ionic',
+  'ngCordova',
+  'sceneIt.controllers',
+  'sceneIt.listView',
+  'sceneIt.factories'
+])
 
 .run(function($ionicPlatform, $http, $cookies, $rootScope) {
   $rootScope.auth = {loggedIn: false, userid: null};
@@ -58,7 +64,7 @@ angular.module('sceneIt', ['ionic','ngCordova', 'sceneIt.controllers', 'sceneIt.
     views: {
       'menuContent': {
         templateUrl: "templates/browse.html",
-        controller: 'GeoLocCtrl'
+        controller: 'mapCtrl'
       }
     }
   })

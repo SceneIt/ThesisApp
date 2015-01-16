@@ -105,4 +105,141 @@ angular.module('sceneIt.factories', ['ngCookies'])
     isAuthenticated: isAuthenticated
 
   };
+})
+
+.factory('MapFactory', function($http, $compile){
+
+  //getPoints function will return an array of objects
+  var picserver = encodeURI('http://162.246.58.173:8000');
+  var server = encodeURI('http://mappix.azurewebsites.net');
+
+  var getPhotoData = function(id){
+    console.log('gettin photo data with id', id);
+    return $http.post(picserver+'/api/photo/data/getPhotoData', {id:id})
+      .success(function(data){
+      return data;
+    }).error(function(){
+      console.log('probably getting Photo Data with id',id);
+    });
+  };
+  var getCommentsForPhoto = function(id){
+    return $http.get(server+'/api/comments/', {params: {id: id}})
+    .success(function(data){
+      return data;
+    });
+  };
+  var postComment = function(id, user, comment){
+    console.log(id, user, comment);
+    return $http({
+      method: 'POST',
+      url: server+'/api/comments/',
+      data: {photoid: id, userid: user, comment: comment}
+    }).then(function(res){
+        return res.data;
+    });
+  };
+  var getPoints = function(){
+    return $http({
+      method: 'GET',
+      url: server + '/api/photo/data'
+    }).then(function(res){
+      return(res.data);
+    });
+  };
+  //postPhotos function will post object into database
+  var postPhotos = function(photoData){
+    return $http({
+      method: 'POST',
+      url: picserver + 'api/photo/data',
+      data: photoData
+    }).then(function(res){
+        console.log('uplodaded',res.data);
+        return res.data;
+    });
+  };
+
+  var plotPoints = function(points, $scope){
+    var markers = L.markerClusterGroup();
+    var picIcon = L.Icon.extend({
+      options: {
+        iconSize: [40, 40],
+        shadowSize: [45,51],
+        shadowAnchor: [22,23.5]
+      }
+    });
+    for(var i = 0; i < points.length; i ++){
+      var html = '<div class ="pic-box" ng-click="showComments('+points[i].id+')"><h6>'+points[i].description+'</h6>' +
+          '<img src = '+points[i].photoUrl+' height = "150", width = "150"></div>',
+          linkFunction = $compile(angular.element(html)),
+          newScope = $scope.$new(),
+          picMarker = new L.marker([points[i].latitude, points[i].longitude], {
+            icon: new picIcon({
+              iconUrl: points[i].photoUrl,
+              shadowUrl: '../img/polaroid3.png'
+            })
+      });
+      picMarker.bindPopup(linkFunction(newScope)[0]);
+      // picMarker.click(console.log("test"+points[i].description+'photoURL'+points[i].photoUrl));
+      markers.addLayer(picMarker);
+    }
+    return markers;
+  };
+  return {
+    // getLocation: getLocation,
+    getPhotoData: getPhotoData,
+    getCommentsForPhoto: getCommentsForPhoto,
+    postComment: postComment,
+    getPoints : getPoints,
+    postPhotos : postPhotos,
+    plotPoints : plotPoints
+  };
+})
+.factory('commentFactory', function($ionicLoading, $ionicPopup, MapFactory){
+  var showComments = function(id, $scope) {
+    $scope.pointComment = {};
+    $ionicLoading.show({
+      template: 'Loading...'
+    });
+    MapFactory.getPhotoData(id)
+      .then(function(data){
+        $scope.pointComment.data = data.data;
+        MapFactory.getCommentsForPhoto(id)
+          .then(function(comments){
+            $scope.pointComment.comments = comments;
+            $ionicLoading.hide();
+            $scope.commentModal.show();
+          });
+      });
+  };
+  var postComment = function(photoData, $scope){
+    $scope.commentData = {};
+    var commentPostPopup = $ionicPopup.show({
+      template: '<textarea rows=2 type="text" ng-model="commentData.comment">',
+      title: 'Enter your comments',
+      scope: $scope,
+      buttons: [
+        { text: 'Cancel' },
+        {
+          text: '<b>Save</b>',
+          type: 'button-positive',
+          onTap: function(e) {
+            if (!$scope.commentData.comment) {
+              //don't allow the user to submit unless comments are present
+              e.preventDefault();
+            } else {
+              MapFactory.postComment(photoData.id, photoData.userID, $scope.commentData.comment);
+              $scope.showComments(photoData.id);
+            }
+          }
+        }
+      ]
+    });
+    commentPostPopup.then(function(res) {
+      console.log('Tapped!', res);
+    });
+  };
+  return {
+    showComments: showComments,
+    postComment: postComment
+  };
 });
