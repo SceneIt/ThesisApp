@@ -10,6 +10,8 @@ angular.module('sceneIt', [
   'ngCordova',
   'sceneIt.controllers',
   'sceneIt.listView',
+  'sceneIt.map',
+  'sceneIt.camera',
   'sceneIt.factories'
 ])
 
