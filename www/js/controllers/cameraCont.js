@@ -1,7 +1,7 @@
 angular.module('sceneIt.camera', [])
 
-.controller('cameraCtrl', function($http, $scope, $rootScope, $ionicActionSheet, Session, Auth, CameraFactory){
-  
+.controller('cameraCtrl', function($http, $scope, $rootScope, $ionicActionSheet, Auth, CameraFactory){
+
   $scope.description = {
     comment: '',
     auth: $rootScope.auth

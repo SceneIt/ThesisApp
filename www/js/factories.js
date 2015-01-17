@@ -1,4 +1,4 @@
-angular.module('sceneIt.factories', [])
+angular.module('sceneIt.factories', ['ngCookies'])
 
 //BEGIN AUTH FACTORY
 .factory('Auth', function($state, $rootScope, $http){
