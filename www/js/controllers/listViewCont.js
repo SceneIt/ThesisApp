@@ -56,6 +56,7 @@ angular.module('sceneIt.listView', ['sceneIt.filters'])
     $scope.commentModal.hide();
   };
 
+  // Called when user uses 'pull to refresh' on list view page 
   $scope.doRefresh = function(){
     getLocation();
        // Stop the ion-refresher from spinning

@@ -1,6 +1,6 @@
 angular.module('sceneIt.map', [])
 
-.controller('mapCtrl', function($scope, $rootScope, $interval,$ionicModal, $ionicLoading, $ionicPopup, $ionicScrollDelegate, $http, MapFactory, Auth, commentFactory){
+.controller('mapCtrl', function($scope, $rootScope, $interval,$ionicModal, $http, MapFactory, Auth, commentFactory){
 
     $ionicModal.fromTemplateUrl('templates/comments.html', {
       scope: $scope
@@ -30,7 +30,7 @@ angular.module('sceneIt.map', [])
        });
     };
 
-// Begin map plotting
+  // Begin map plotting
 
   // Map plotting and refreshing variable declarations 
   var dataPoints = 0,
@@ -53,17 +53,18 @@ angular.module('sceneIt.map', [])
       title: 'Teleport Me To'
     }).addTo(map);
 
+  // appends initial map layer to view
   map.addLayer(layer);
 
-// function to grab geolocation cluster markers from MapFactory and adds as layer to map
+  // Finds users current location and centers map 
+  map.locate({setView: true, maxZoom: 16});
+
+  // function to grab geolocation cluster markers from MapFactory and adds as layer to map
   var initPoints = function(){
     MapFactory.getPoints().then(function(data){
       map.addLayer(MapFactory.plotPoints(data, $scope));
     });
   };
-
-  // Finds users current location and centers map 
-  map.locate({setView: true, maxZoom: 16});
 
   //initial call to plot database points on load
   initPoints();

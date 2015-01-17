@@ -1,10 +1,3 @@
-// Ionic Starter App
-
-// angular.module is a global place for creating, registering and retrieving Angular modules
-// 'starter' is the name of this angular module example (also set in a <body> attribute in index.html)
-// the 2nd parameter is an array of 'requires'
-// 'starter.controllers' is found in controllers.js
-
 angular.module('sceneIt', [
   'ionic',
   'ngCordova',
@@ -29,11 +22,9 @@ angular.module('sceneIt', [
       StatusBar.styleDefault();
     }
   });
-  // $http.defaults.headers.post['X-CSRFToken'] = $cookies.csrftoken;
 })
 
 .config(function($stateProvider, $urlRouterProvider, $httpProvider) {
-  // $httpProvider.defaults.withCredentials = true;
   $stateProvider
 
   .state('app', {
@@ -42,15 +33,6 @@ angular.module('sceneIt', [
     templateUrl: "templates/menu.html",
     controller: 'AppCtrl'
   })
-  // .state('app.comments', {
-  //   url: "/comments",
-  //   views: {
-  //     'menuContent': {
-  //       templateUrl: "templates/comments.html"
-  //       // controller: 'GeoTestCtrl'
-  //     }
-  //   }
-  // })
   .state('app.camera', {
     url: "/camera",
     views: {
@@ -60,7 +42,7 @@ angular.module('sceneIt', [
       }
     }
   })
-  // browse state currently acts as map, this may be renamed later if necessary
+  // browse map state
   .state('app.browse', {
     url: "/browse",
     views: {
@@ -95,9 +77,5 @@ document.addEventListener("deviceready", onDeviceReady, false);
 function onDeviceReady() {
     console.log("navigator.geolocation works well");
     console.log(navigator.camera);
-
 }
-// document.addEventListener("deviceready", onDeviceReady, false);
-// function onDeviceReady() {
-//     console.log(navigator.camera);
-// }
+

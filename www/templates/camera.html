@@ -7,13 +7,9 @@
       <img id="preview" width="200" height="200"></img>
       <br><br>
       <ng-form name="descriptionBox">
-        <!-- <label class="item item-input"> -->
-          
           <textarea id='desc' placeholder='Please enter a description [required]' type='text' rows='2' ng-model="description.comment"  ng-required="true"></textarea>
-       <!-- </label> -->
-       <br><br>
-         <button type="submit" ng-disabled="descriptionBox.$invalid"ng-click="uploadPicture()"  class="button button-block button-positive">upload pic</button>
-      Logged in as:  {{description}}
+           <br><br>
+         <button type="submit" ng-disabled="descriptionBox.$invalid"ng-click="uploadData()"  class="button button-block button-positive">upload pic</button>
 
     </ng-form>
     </div>

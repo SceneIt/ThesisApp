@@ -1,68 +1,10 @@
-angular.module('sceneIt.factories', ['ngCookies'])
+angular.module('sceneIt.factories', [])
 
-.factory('Session', function(){
-  var _username = null;
+//BEGIN AUTH FACTORY
+.factory('Auth', function($state, $rootScope, $http){
+  var server = "http://mappix.azurewebsites.net";
 
-  var setUsername = function(usernameIN){
-    _username = usernameIN;
-    return _username;
-  };
-
-  var username = function(){
-    return _username;
-  };
-
-  var create = function(usernameCreate){
-    _username = usernameCreate;
-  };
-
-  var destroy = function(){
-    _username = null;
-  };
-
-  return {
-    create: create,
-    setUsername: setUsername,
-    destroy: destroy,
-    username: username,
-    _username: _username
-  };
-})
-
-.factory('Auth', function($state, $rootScope, $http, $window, $location, $cookies, Session){
-  var server = "http://corruptflamingo-staging.azurewebsites.net";
-  // var server = "http://localhost:8000";
-  // var userInfo = {
-  //   username: 'username',
-  //   password: 'password',
-  //   email: 'email'
-  // };
-
-  //Keep state when refreshed
-  function init() {
-    if ($cookies["userID"]) {
-      Session.create($cookies.userID);
-    }
-  }
-
-  init();
-
-  var isAuthenticated = function(){
-    return !!Session.username();
-  };
-
-  var signup = function(user){
-    $http({
-      method: 'POST',
-      url: server + '/api/user/signup',
-      data: user
-    })
-    .then(function(res){
-      Session.create(res.data.username);
-      $state.go('app.browse');
-    });
-  };
-
+  // verifies credentials with database, logs user in if credentials match
   var signin = function(userInfo){
     return ($http({
       method: 'POST',
@@ -70,10 +12,6 @@ angular.module('sceneIt.factories', ['ngCookies'])
       data: userInfo
     })
     .then(function(res){
-      console.log(res);
-      console.log('signed in res:',res.data.username);
-      Session.create(res.data.username);
-      console.log(res.data);
       $rootScope.auth.userid = res.data.userid;
       $rootScope.auth.loggedIn = true;
     }));
@@ -85,36 +23,25 @@ angular.module('sceneIt.factories', ['ngCookies'])
       url: server + '/api/user/logout'
     }).
     then(function(res){
-    var userInfo = {
-      username: 'username',
-      password: 'password',
-      email: 'email'
-    };
       $rootScope.username = null;
-      Session.destroy();
-      $location.path('/signin');
-      console.log('res',res, Session.username(), $cookies.userID);
     }
   );
 };
   return {
-    // userInfo: userInfo,
     signin: signin,
-    signup: signup,
-    signout: signout,
-    isAuthenticated: isAuthenticated
-
+    signout: signout
   };
 })
 
+// BEGIN MAP FACTORY
 .factory('MapFactory', function($http, $compile){
 
   //getPoints function will return an array of objects
   var picserver = encodeURI('http://162.246.58.173:8000');
   var server = encodeURI('http://mappix.azurewebsites.net');
 
+  // makes call to backend API to retreive data about pic stored in database
   var getPhotoData = function(id){
-    console.log('gettin photo data with id', id);
     return $http.post(picserver+'/api/photo/data/getPhotoData', {id:id})
       .success(function(data){
       return data;
@@ -122,14 +49,17 @@ angular.module('sceneIt.factories', ['ngCookies'])
       console.log('probably getting Photo Data with id',id);
     });
   };
+
+  // grabs all comments for image with <id> from database
   var getCommentsForPhoto = function(id){
     return $http.get(server+'/api/comments/', {params: {id: id}})
     .success(function(data){
       return data;
     });
   };
+
+  // sends comment to database, saves photo id, userid, and comments
   var postComment = function(id, user, comment){
-    console.log(id, user, comment);
     return $http({
       method: 'POST',
       url: server+'/api/comments/',
@@ -138,6 +68,8 @@ angular.module('sceneIt.factories', ['ngCookies'])
         return res.data;
     });
   };
+
+  // 
   var getPoints = function(){
     return $http({
       method: 'GET',
@@ -158,6 +90,7 @@ angular.module('sceneIt.factories', ['ngCookies'])
     });
   };
 
+  // Returns a leaflet markergroup with markers for each image in the database
   var plotPoints = function(points, $scope){
     var markers = L.markerClusterGroup();
     var picIcon = L.Icon.extend({
@@ -179,13 +112,11 @@ angular.module('sceneIt.factories', ['ngCookies'])
             })
       });
       picMarker.bindPopup(linkFunction(newScope)[0]);
-      // picMarker.click(console.log("test"+points[i].description+'photoURL'+points[i].photoUrl));
       markers.addLayer(picMarker);
     }
     return markers;
   };
   return {
-    // getLocation: getLocation,
     getPhotoData: getPhotoData,
     getCommentsForPhoto: getCommentsForPhoto,
     postComment: postComment,
@@ -194,7 +125,11 @@ angular.module('sceneIt.factories', ['ngCookies'])
     plotPoints : plotPoints
   };
 })
+
+//BEGIN COMMENT FACTORY
 .factory('commentFactory', function($ionicLoading, $ionicPopup, MapFactory){
+
+  // Shows loading screen while grabbing comments for specified photo id
   var showComments = function(id, $scope) {
     $scope.pointComment = {};
     $ionicLoading.show({
@@ -211,6 +146,9 @@ angular.module('sceneIt.factories', ['ngCookies'])
           });
       });
   };
+
+  // popup comment box for entering comments, sends comment to mapfactory for
+  // api to send to backend and write to database
   var postComment = function(photoData, $scope){
     $scope.commentData = {};
     var commentPostPopup = $ionicPopup.show({
@@ -234,12 +172,108 @@ angular.module('sceneIt.factories', ['ngCookies'])
         }
       ]
     });
-    commentPostPopup.then(function(res) {
-      console.log('Tapped!', res);
-    });
   };
   return {
     showComments: showComments,
     postComment: postComment
+  };
+})
+
+// BEGIN CAMERA FACTORY 
+
+.factory('CameraFactory', function($http, $cordovaFile, $ionicLoading, $cordovaProgress){
+
+  var imageData;
+  var cameraOptions = {
+    quality: 80,
+    encodingType: Camera.EncodingType.JPEG,
+    saveToPhotoAlbum: true,
+    correctOrientation: true,
+    targetWidth: 720,
+    targetHeight: 720
+  };
+
+  // selected from Action sheet in camera pane, 
+  // uses camera to take picture and calls grabPicture function
+  // to process taken image
+  var takePicture = function(){
+    cameraOptions.sourceType = Camera.PictureSourceType.CAMERA;
+    cameraOptions.destinationType = Camera.DestinationType.FILE_URI;
+    grabPicture();
+  };
+
+  // selected from Action sheet in camera pane,
+  // provides photo album to select existing picture to upload
+  // calls grabPicture function process selected image
+  var selectPicture = function(){
+    cameraOptions.sourceType = Camera.PictureSourceType.SAVEDPHOTOALBUM;
+    cameraOptions.destinationType = Camera.DestinationType.NATIVE_URI;
+    grabPicture();
+  };
+
+  // appends selected or taken image to preview div on camera pane,
+  // assigns returned imageURI to imageData variable for uploadData to
+  // send image to server
+  var grabPicture = function(){
+    navigator.camera.getPicture(function(imageURI) {
+      var image = document.getElementById('preview');
+      imageData = imageURI;
+      image.src = imageData;
+
+    }, function(err) {
+      console.log('camera error');
+    }, cameraOptions);
+  };
+
+  // Sends image description data along with image data to backend picture service
+  // displays 'uploading' and 'success' screens as picture is being sent, alerts with error
+  // if upload fails
+  var uploadData = function($scope){
+    $ionicLoading.show({
+      template: 'Uploading...'
+    });
+    // var server = encodeURI('http://10.6.32.229:8000/photo/take');     //HackReactor test
+    // var server = encodeURI('http://192.168.1.109:8000/photo/take'); //home test
+    var picserver = encodeURI('http://162.246.58.173:8000/photo/take'); // vps test
+    // var server = encodeURI('corruptflamingo-staging.azurewebsites.net/photo/take'); //azure staging test
+    var req = {
+      method: 'POST',
+      url: picserver,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      data: {
+        desc: $scope.description
+      }
+    };
+
+    // Sends comment first, on success, sends image
+    if($scope.description){
+      $http(req).success(function(){
+      
+        var success = function (r) {
+          $ionicLoading.hide();
+          $cordovaProgress.showSuccess(true, "Success!");
+          $timeout($cordovaProgress.hide, 2000);
+        };
+
+        var fail = function (error) {
+          $ionicLoading.hide();
+          alert('upload Fail, please try again');
+        };
+
+        var options = new FileUploadOptions();
+        options.mimeType = "image/JPEG";
+
+        var ft = new FileTransfer();
+        ft.upload(imageData, picserver, success, fail, options);
+      });
+    }
+  };
+  return {
+    takePicture: takePicture,
+    selectPicture: selectPicture,
+    grabPicture: grabPicture,
+    uploadData: uploadData
   };
 });

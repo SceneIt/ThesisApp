@@ -41,7 +41,6 @@ angular.module('sceneIt.controllers', ['sceneIt.filters'])
   };
 
   $scope.signOut = function(){
-    console.log('signing out');
     Auth.signout();
   };
 });
