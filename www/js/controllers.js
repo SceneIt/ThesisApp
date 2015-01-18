@@ -12,8 +12,8 @@ angular.module('sceneIt.controllers', ['sceneIt.filters'])
   });
 
   $scope.user = {
-    username: 'username',
-    password: 'password',
+    username: '',
+    password: '',
     email: 'email'
   };
   // Triggered in the login modal to close it

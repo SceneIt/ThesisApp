@@ -5,7 +5,10 @@ angular.module('sceneIt', [
   'sceneIt.listView',
   'sceneIt.map',
   'sceneIt.camera',
-  'sceneIt.factories'
+  'sceneIt.cameraFac',
+  'sceneIt.CommentFact',
+  'sceneIt.MapFact',
+  'sceneIt.AuthFact'
 ])
 
 .run(function($ionicPlatform, $http, $cookies, $rootScope) {

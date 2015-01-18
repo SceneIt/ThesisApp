@@ -40,7 +40,6 @@ angular.module('sceneIt.listView', ['sceneIt.filters'])
           $scope.results.push([data[dataOrder[i].key],(dataOrder[i].distance*0.000621371192).toFixed(2)]);
           $ionicLoading.hide();
         }
-        console.log($scope.results);
       });
   };
 
