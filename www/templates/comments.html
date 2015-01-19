@@ -6,11 +6,6 @@
     <h1 class="title">Comments</h1>
     <button class="button" ng-click="closeComments()">Close</button>
   </div>
-   <!--  <button class="button button-clear" ng-click="closeComments()">Post</button>
-    <h1 class="title">Comments</h1>
-    <div class="buttons">
-      <button class="button button-clear" ng-click="closeComments()">Close</button> -->
-    <!-- </div> -->
   </header-bar>
 </ion-header-bar>
   <ion-content has-header="true">
@@ -20,7 +15,6 @@
   </ion-refresher>
   <div class="card">
     <div class="item item-avatar"  data-ng-if="pointComment.data.timeStamp">
-       <!-- <img src="mcfly.jpg"> -->
        <h2>{{ pointComment.data.description }}</h2>
        <p>{{ pointComment.data.timeStamp | fromNow}}</p>
      </div>
@@ -35,8 +29,5 @@
     <div ng-if="pointComment.comments.data.length == 0" class="item item-text-wrap"><strong>No comments yet...</strong></div>
   </div>
 
-<!--  <div class="container">
-
- </div> -->
   </ion-content>
 </ion-modal-view>

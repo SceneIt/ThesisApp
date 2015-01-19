@@ -1,13 +1,19 @@
-// Ionic Starter App
+angular.module('sceneIt', [
+  'ionic',
+  'ngCordova',
+  'sceneIt.controllers',
+  'sceneIt.listView',
+  'sceneIt.map',
+  'sceneIt.camera',
+  'sceneIt.cameraFac',
+  'sceneIt.CommentFact',
+  'sceneIt.MapFact',
+  'sceneIt.AuthFact'
+])
 
-// angular.module is a global place for creating, registering and retrieving Angular modules
-// 'starter' is the name of this angular module example (also set in a <body> attribute in index.html)
-// the 2nd parameter is an array of 'requires'
-// 'starter.controllers' is found in controllers.js
+.run(function($ionicPlatform, $http, $rootScope) {
+  $rootScope.auth = {loggedIn: false, userid: null};
 
-angular.module('sceneIt', ['ionic','ngCordova', 'sceneIt.controllers', 'sceneIt.factories'])
-
-.run(function($ionicPlatform, $http, $cookies) {
   $ionicPlatform.ready(function() {
     // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
     // for form inputs)
@@ -19,11 +25,9 @@ angular.module('sceneIt', ['ionic','ngCordova', 'sceneIt.controllers', 'sceneIt.
       StatusBar.styleDefault();
     }
   });
-  // $http.defaults.headers.post['X-CSRFToken'] = $cookies.csrftoken;
 })
 
-.config(function($stateProvider, $urlRouterProvider, $httpProvider) {
-  // $httpProvider.defaults.withCredentials = true;
+.config(function($stateProvider, $urlRouterProvider) {
   $stateProvider
 
   .state('app', {
@@ -32,15 +36,6 @@ angular.module('sceneIt', ['ionic','ngCordova', 'sceneIt.controllers', 'sceneIt.
     templateUrl: "templates/menu.html",
     controller: 'AppCtrl'
   })
-  // .state('app.comments', {
-  //   url: "/comments",
-  //   views: {
-  //     'menuContent': {
-  //       templateUrl: "templates/comments.html"
-  //       // controller: 'GeoTestCtrl'
-  //     }
-  //   }
-  // })
   .state('app.camera', {
     url: "/camera",
     views: {
@@ -50,13 +45,13 @@ angular.module('sceneIt', ['ionic','ngCordova', 'sceneIt.controllers', 'sceneIt.
       }
     }
   })
-  // browse state currently acts as map, this may be renamed later if necessary
+  // browse map state
   .state('app.browse', {
     url: "/browse",
     views: {
       'menuContent': {
         templateUrl: "templates/browse.html",
-        controller: 'GeoLocCtrl'
+        controller: 'mapCtrl'
       }
     }
   })
@@ -85,9 +80,5 @@ document.addEventListener("deviceready", onDeviceReady, false);
 function onDeviceReady() {
     console.log("navigator.geolocation works well");
     console.log(navigator.camera);
-
 }
-// document.addEventListener("deviceready", onDeviceReady, false);
-// function onDeviceReady() {
-//     console.log(navigator.camera);
-// }
+
