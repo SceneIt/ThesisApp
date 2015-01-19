@@ -1,6 +1,6 @@
 angular.module('sceneIt.listView', ['sceneIt.filters'])
 
-.controller('listViewCtrl', function($scope, $ionicModal, $ionicLoading, MapFactory, commentFactory, $rootScope){
+.controller('listViewCtrl', function($scope, $ionicModal, $ionicLoading, MapFactory, commentFactory){
   // Results array to be populated with picture points in order of distance from users current location
   // to be displayed by listView template
   $scope.results = [];
@@ -43,6 +43,7 @@ angular.module('sceneIt.listView', ['sceneIt.filters'])
       });
   };
 
+  // Comment panes directed to commentFactory
   $scope.showComments = function(id){
     commentFactory.showComments(id, $scope);
   };

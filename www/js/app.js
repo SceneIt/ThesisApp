@@ -11,7 +11,7 @@ angular.module('sceneIt', [
   'sceneIt.AuthFact'
 ])
 
-.run(function($ionicPlatform, $http, $cookies, $rootScope) {
+.run(function($ionicPlatform, $http, $rootScope) {
   $rootScope.auth = {loggedIn: false, userid: null};
 
   $ionicPlatform.ready(function() {
@@ -27,7 +27,7 @@ angular.module('sceneIt', [
   });
 })
 
-.config(function($stateProvider, $urlRouterProvider, $httpProvider) {
+.config(function($stateProvider, $urlRouterProvider) {
   $stateProvider
 
   .state('app', {

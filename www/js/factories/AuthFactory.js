@@ -1,6 +1,6 @@
 angular.module('sceneIt.AuthFact', [])
 
-.factory('Auth', function($state, $rootScope, $http){
+.factory('Auth', function($rootScope, $http){
   var server = "http://mappix.azurewebsites.net";
 
   // verifies credentials with database, logs user in if credentials match
@@ -34,4 +34,4 @@ angular.module('sceneIt.AuthFact', [])
     signin: signin,
     signout: signout
   };
-})
+});

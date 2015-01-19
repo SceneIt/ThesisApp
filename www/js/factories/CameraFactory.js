@@ -1,4 +1,4 @@
-angular.module('sceneIt.cameraFac', ['ngCookies'])
+angular.module('sceneIt.cameraFac', [])
 
 .factory('CameraFactory', function($http, $cordovaFile, $ionicLoading, $cordovaProgress){
 
@@ -48,6 +48,11 @@ angular.module('sceneIt.cameraFac', ['ngCookies'])
   // displays 'uploading' and 'success' screens as picture is being sent, alerts with error
   // if upload fails
   var uploadData = function($scope){
+    if(!$scope.description.userid){
+      alert('Please log in to contribute');
+      return;
+    }
+
     $ionicLoading.show({
       template: 'Uploading...'
     });

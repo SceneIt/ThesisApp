@@ -1,5 +1,6 @@
 angular.module('sceneIt.controllers', ['sceneIt.filters'])
 
+//Base controller, handles login/auth
 .controller('AppCtrl', function($scope, $ionicModal, $ionicLoading, $timeout, Auth) {
   // Form data for the login modal
 

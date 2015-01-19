@@ -43,8 +43,6 @@ angular.module('sceneIt.map', [])
        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
      }),
 
-  // adds map base layer
-
   // Map location search bar
     searchControl = new L.esri.Controls.Geosearch({
       position:'topright',

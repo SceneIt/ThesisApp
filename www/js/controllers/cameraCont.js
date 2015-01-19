@@ -12,30 +12,29 @@ angular.module('sceneIt.camera', [])
   // take new picture
   $scope.showCameraSelect = function() {
     $ionicActionSheet.show({
-     buttons: [
-       { text: 'Take a picture' },
-       { text: 'Select from album' }
-     ],
-     titleText: 'Select your source',
-     cancelText: 'Cancel',
-     cancel: function() {
-        return true;
-      },
-     buttonClicked: function(index) {
-      if(index === 0){
-        CameraFactory.takePicture();
-        return true;
+       buttons: [
+         { text: 'Take a picture' },
+         { text: 'Select from album' }
+       ],
+       titleText: 'Select your source',
+       cancelText: 'Cancel',
+       cancel: function() {
+          return true;
+        },
+       buttonClicked: function(index) {
+        if(index === 0){
+          CameraFactory.takePicture();
+          return true;
+        }
+        if(index === 1){
+          CameraFactory.selectPicture();
+          return true;
+        }
       }
-      if(index === 1){
-        CameraFactory.selectPicture();
-        return true;
-      }
-     }
    });
   };
 
   $scope.uploadData = function(){
     CameraFactory.uploadData($scope);
   };
-  
 });
